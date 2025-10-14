@@ -23,7 +23,7 @@ public class DroneR2dbcRepository implements DroneRepository {
     @Override
     public Flux<DroneEntity> findAll() {
         String sql = """
-        SELECT id, vehicleId, model, description, serialNumber, status, created_at, updated_at
+        SELECT id, vehicle_id, model, description, serial_number, status, created_at, updated_at
         FROM drone
         ORDER BY created_at DESC
         """;
@@ -31,10 +31,10 @@ public class DroneR2dbcRepository implements DroneRepository {
         return databaseClient.sql(sql)
                 .map(row -> new DroneEntity(
                         Objects.requireNonNull(row.get("id", UUID.class)).toString(),
-                        row.get("vehicleId", String.class),
+                        row.get("vehicle_id", String.class),
                         row.get("model", String.class),
                         row.get("description", String.class),
-                        row.get("serialNumber", String.class),
+                        row.get("serial_number", String.class),
                         // Convertimos el string de DB a DroneStatus
                         DroneStatus.valueOf(Objects.requireNonNull(row.get("status", String.class))),
                         row.get("created_at", LocalDateTime.class),
