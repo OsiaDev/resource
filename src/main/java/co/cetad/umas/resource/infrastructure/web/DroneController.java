@@ -4,14 +4,12 @@ import co.cetad.umas.resource.application.service.drone.DroneService;
 import co.cetad.umas.resource.domain.model.dto.DroneResponseDTO;
 import co.cetad.umas.resource.domain.model.entity.DroneEntity;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 @RestController
-@CrossOrigin("*")
 @RequestMapping("/api/v1/drones")
 public class DroneController {
 

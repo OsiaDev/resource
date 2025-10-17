@@ -30,7 +30,7 @@ public class DroneR2dbcRepository implements DroneRepository {
 
         return databaseClient.sql(sql)
                 .map(row -> new DroneEntity(
-                        Objects.requireNonNull(row.get("id", UUID.class)).toString(),
+                        row.get("id", UUID.class).toString(),
                         row.get("vehicle_id", String.class),
                         row.get("model", String.class),
                         row.get("description", String.class),
