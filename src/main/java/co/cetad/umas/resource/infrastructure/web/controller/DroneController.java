@@ -128,6 +128,7 @@ public class DroneController {
                 droneEntity.description(),
                 droneEntity.serialNumber(),
                 droneEntity.status(),
+                droneEntity.flightHours(),
                 droneEntity.createdAt().toString(),
                 droneEntity.updatedAt().toString()
         );

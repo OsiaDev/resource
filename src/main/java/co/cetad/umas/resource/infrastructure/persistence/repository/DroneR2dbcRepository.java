@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,7 +27,7 @@ public class DroneR2dbcRepository implements DroneRepository {
     @Override
     public Flux<DroneEntity> findAll() {
         String sql = """
-        SELECT id, vehicle_id, model, description, serial_number, status, created_at, updated_at
+        SELECT id, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
         FROM drone
         ORDER BY created_at DESC
         """;
@@ -39,7 +40,7 @@ public class DroneR2dbcRepository implements DroneRepository {
     @Override
     public Mono<Optional<DroneEntity>> findById(String id) {
         String sql = """
-        SELECT id, vehicle_id, model, description, serial_number, status, created_at, updated_at
+        SELECT id, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
         FROM drone
         WHERE id = :id
         """;
@@ -55,9 +56,9 @@ public class DroneR2dbcRepository implements DroneRepository {
     @Override
     public Mono<DroneEntity> save(DroneEntity drone) {
         String sql = """
-        INSERT INTO drone (id, vehicle_id, model, description, serial_number, status, created_at, updated_at)
-        VALUES (:id, :vehicleId, :model, :description, :serialNumber, :status::drone_status, :createdAt, :updatedAt)
-        RETURNING id, vehicle_id, model, description, serial_number, status, created_at, updated_at
+        INSERT INTO drone (id, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at)
+        VALUES (:id, :vehicleId, :model, :description, :serialNumber, :status::drone_status, :flightHours, :createdAt, :updatedAt)
+        RETURNING id, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
         """;
 
         return databaseClient.sql(sql)
@@ -67,6 +68,7 @@ public class DroneR2dbcRepository implements DroneRepository {
                 .bind("description", drone.description())
                 .bind("serialNumber", drone.serialNumber())
                 .bind("status", drone.status().name())
+                .bind("flightHours", drone.flightHours())
                 .bind("createdAt", drone.createdAt())
                 .bind("updatedAt", drone.updatedAt())
                 .map((row, metadata) -> mapRowToDroneEntity(row))
@@ -82,9 +84,10 @@ public class DroneR2dbcRepository implements DroneRepository {
             description = :description,
             serial_number = :serialNumber,
             status = :status::drone_status,
+            flight_hours = :flightHours,
             updated_at = :updatedAt
         WHERE id = :id
-        RETURNING id, vehicle_id, model, description, serial_number, status, created_at, updated_at
+        RETURNING id, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
         """;
 
         return databaseClient.sql(sql)
@@ -94,6 +97,7 @@ public class DroneR2dbcRepository implements DroneRepository {
                 .bind("description", drone.description())
                 .bind("serialNumber", drone.serialNumber())
                 .bind("status", drone.status().name())
+                .bind("flightHours", drone.flightHours())
                 .bind("updatedAt", drone.updatedAt())
                 .map((row, metadata) -> mapRowToDroneEntity(row))
                 .one();
@@ -125,6 +129,7 @@ public class DroneR2dbcRepository implements DroneRepository {
                 row.get("description", String.class),
                 row.get("serial_number", String.class),
                 DroneStatus.valueOf(Objects.requireNonNull(row.get("status", String.class))),
+                row.get("flight_hours", BigDecimal.class),
                 row.get("created_at", LocalDateTime.class),
                 row.get("updated_at", LocalDateTime.class)
         );
