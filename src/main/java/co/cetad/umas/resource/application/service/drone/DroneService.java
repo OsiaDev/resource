@@ -52,6 +52,7 @@ public class DroneService {
                     request.description(),
                     request.serialNumber(),
                     DroneStatus.ACTIVE,
+                    request.flightHours(),
                     now,
                     now
             );
@@ -72,7 +73,9 @@ public class DroneService {
                         request.model(),
                         request.description(),
                         request.serialNumber(),
-                        request.status(),
+                        // Preservar el status existente si no se proporciona uno nuevo
+                        request.status() != null ? request.status() : existingDrone.status(),
+                        request.flightHours(),
                         existingDrone.createdAt(),
                         LocalDateTime.now()
                 ))
@@ -93,6 +96,7 @@ public class DroneService {
                         existingDrone.description(),
                         existingDrone.serialNumber(),
                         status,
+                        existingDrone.flightHours(),
                         existingDrone.createdAt(),
                         LocalDateTime.now()
                 ))
