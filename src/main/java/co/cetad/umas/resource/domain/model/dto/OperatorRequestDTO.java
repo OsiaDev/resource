@@ -8,6 +8,7 @@ public record OperatorRequestDTO(
         String email,
         String phoneNumber,
         String ugcsUserId,
+        String keycloakUserId,
         OperatorStatus status,
         Boolean isAvailable
 ) {

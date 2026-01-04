@@ -54,6 +54,7 @@ public class OperatorService {
                             request.email(),
                             request.phoneNumber(),
                             request.ugcsUserId(),
+                            request.keycloakUserId(),
                             request.status() != null ? request.status() : OperatorStatus.ACTIVE,
                             request.isAvailable() != null ? request.isAvailable() : true,
                             null,
@@ -86,6 +87,7 @@ public class OperatorService {
                                             request.email(),
                                             request.phoneNumber(),
                                             request.ugcsUserId(),
+                                            request.keycloakUserId(),
                                             request.status() != null ? request.status() : existing.status(),
                                             request.isAvailable() != null ? request.isAvailable() : existing.isAvailable(),
                                             existing.createdAt(),
@@ -108,7 +110,7 @@ public class OperatorService {
     }
 
     /**
-     * Valida que el username y email sean únicos
+     * Válida que el username y email sean únicos
      */
     private Mono<Boolean> validateUniqueFields(String excludeId, String username, String email) {
         Mono<Boolean> usernameCheck = operatorRepository.existsByUsername(username)

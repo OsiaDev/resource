@@ -89,6 +89,7 @@ public class OperatorController {
                 entity.email(),
                 entity.phoneNumber(),
                 entity.ugcsUserId(),
+                entity.keycloakUserId(),
                 entity.status(),
                 entity.isAvailable(),
                 entity.createdAt().toString(),

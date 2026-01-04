@@ -9,6 +9,7 @@ public record OperatorResponseDTO(
         String email,
         String phoneNumber,
         String ugcsUserId,
+        String keycloakUserId,
         OperatorStatus status,
         Boolean isAvailable,
         String createdAt,
