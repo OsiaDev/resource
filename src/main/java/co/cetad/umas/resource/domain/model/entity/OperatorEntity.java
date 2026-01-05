@@ -11,7 +11,7 @@ public record OperatorEntity(
         String email,
         String phoneNumber,
         String ugcsUserId,
-        String keycloakUserId,
+        String userKeycloak,
         OperatorStatus status,
         Boolean isAvailable,
         LocalDateTime createdAt,

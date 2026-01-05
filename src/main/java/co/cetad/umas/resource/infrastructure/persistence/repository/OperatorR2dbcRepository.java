@@ -26,7 +26,7 @@ public class OperatorR2dbcRepository implements OperatorRepository {
     public Flux<OperatorEntity> findAll() {
         String sql = """
             SELECT id, username, full_name, email, phone_number, ugcs_user_id, 
-                   keycloak_user_id, status, is_available, created_at, updated_at
+                   user_keycloak, status, is_available, created_at, updated_at
             FROM operator
             ORDER BY created_at DESC
             """;
@@ -40,7 +40,7 @@ public class OperatorR2dbcRepository implements OperatorRepository {
     public Mono<OperatorEntity> findById(String id) {
         String sql = """
             SELECT id, username, full_name, email, phone_number, ugcs_user_id, 
-                   keycloak_user_id, status, is_available, created_at, updated_at
+                   user_keycloak, status, is_available, created_at, updated_at
             FROM operator
             WHERE id = :id
             """;
@@ -55,9 +55,9 @@ public class OperatorR2dbcRepository implements OperatorRepository {
     public Mono<OperatorEntity> save(OperatorEntity operator) {
         String sql = """
             INSERT INTO operator (id, username, full_name, email, phone_number, ugcs_user_id, 
-                                  keycloak_user_id, status, is_available, created_at, updated_at)
+                                  user_keycloak, status, is_available, created_at, updated_at)
             VALUES (:id, :username, :fullName, :email, :phoneNumber, :ugcsUserId, 
-                    :keycloakUserId, :status::operator_status, :isAvailable, :createdAt, :updatedAt)
+                    :userKeycloak, :status::operator_status, :isAvailable, :createdAt, :updatedAt)
             RETURNING id, username, full_name, email, phone_number, ugcs_user_id, 
                       keycloak_user_id, status, is_available, created_at, updated_at
             """;
@@ -71,8 +71,7 @@ public class OperatorR2dbcRepository implements OperatorRepository {
                 .bind("email", operator.email())
                 .bind("phoneNumber", operator.phoneNumber() != null ? operator.phoneNumber() : "")
                 .bind("ugcsUserId", operator.ugcsUserId() != null ? operator.ugcsUserId() : "")
-                .bind("keycloakUserId", operator.keycloakUserId() != null ?
-                        UUID.fromString(operator.keycloakUserId()) : null)
+                .bind("userKeycloak", operator.userKeycloak() != null ? operator.userKeycloak() : "")
                 .bind("status", operator.status().name())
                 .bind("isAvailable", operator.isAvailable() != null ? operator.isAvailable() : true)
                 .bind("createdAt", now)
@@ -90,13 +89,13 @@ public class OperatorR2dbcRepository implements OperatorRepository {
                 email = :email,
                 phone_number = :phoneNumber,
                 ugcs_user_id = :ugcsUserId,
-                keycloak_user_id = :keycloakUserId,
+                user_keycloak = :userKeycloak,
                 status = :status::operator_status,
                 is_available = :isAvailable,
                 updated_at = :updatedAt
             WHERE id = :id
             RETURNING id, username, full_name, email, phone_number, ugcs_user_id, 
-                      keycloak_user_id, status, is_available, created_at, updated_at
+                      user_keycloak, status, is_available, created_at, updated_at
             """;
 
         return databaseClient.sql(sql)
@@ -106,8 +105,7 @@ public class OperatorR2dbcRepository implements OperatorRepository {
                 .bind("email", operator.email())
                 .bind("phoneNumber", operator.phoneNumber() != null ? operator.phoneNumber() : "")
                 .bind("ugcsUserId", operator.ugcsUserId() != null ? operator.ugcsUserId() : "")
-                .bind("keycloakUserId", operator.keycloakUserId() != null ?
-                        UUID.fromString(operator.keycloakUserId()) : null)
+                .bind("userKeycloak", operator.userKeycloak() != null ? operator.userKeycloak() : "")
                 .bind("status", operator.status().name())
                 .bind("isAvailable", operator.isAvailable())
                 .bind("updatedAt", LocalDateTime.now())
@@ -155,7 +153,7 @@ public class OperatorR2dbcRepository implements OperatorRepository {
     }
 
     private OperatorEntity mapRowToEntity(Readable row) {
-        UUID keycloakUuid = row.get("keycloak_user_id", UUID.class);
+        String userKeycloak = row.get("user_keycloak", String.class);
 
         return new OperatorEntity(
                 Objects.requireNonNull(row.get("id", UUID.class)).toString(),
@@ -164,7 +162,7 @@ public class OperatorR2dbcRepository implements OperatorRepository {
                 row.get("email", String.class),
                 row.get("phone_number", String.class),
                 row.get("ugcs_user_id", String.class),
-                keycloakUuid != null ? keycloakUuid.toString() : null,
+                userKeycloak,
                 OperatorStatus.valueOf(Objects.requireNonNull(row.get("status", String.class))),
                 row.get("is_available", Boolean.class),
                 row.get("created_at", LocalDateTime.class),
