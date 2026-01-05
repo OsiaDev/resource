@@ -57,7 +57,7 @@ public class OperatorR2dbcRepository implements OperatorRepository {
             INSERT INTO operator (id, username, full_name, email, phone_number, ugcs_user_id, 
                                   keycloak_user_id, status, is_available, created_at, updated_at)
             VALUES (:id, :username, :fullName, :email, :phoneNumber, :ugcsUserId, 
-                    :keycloakUserId, :status, :isAvailable, :createdAt, :updatedAt)
+                    :keycloakUserId, :status::operator_status, :isAvailable, :createdAt, :updatedAt)
             RETURNING id, username, full_name, email, phone_number, ugcs_user_id, 
                       keycloak_user_id, status, is_available, created_at, updated_at
             """;
@@ -91,7 +91,7 @@ public class OperatorR2dbcRepository implements OperatorRepository {
                 phone_number = :phoneNumber,
                 ugcs_user_id = :ugcsUserId,
                 keycloak_user_id = :keycloakUserId,
-                status = :status,
+                status = :status::operator_status,
                 is_available = :isAvailable,
                 updated_at = :updatedAt
             WHERE id = :id
