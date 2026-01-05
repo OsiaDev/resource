@@ -45,7 +45,7 @@ public class DroneService {
     public CompletableFuture<DroneEntity> createDrone(DroneCreateRequestDTO request) {
         return CompletableFuture.supplyAsync(() -> {
             LocalDateTime now = LocalDateTime.now();
-            DroneEntity newDrone = new DroneEntity(
+            return new DroneEntity(
                     UUID.randomUUID().toString(),
                     request.vehicleId(),
                     request.model(),
@@ -56,7 +56,6 @@ public class DroneService {
                     now,
                     now
             );
-            return newDrone;
         }).thenCompose(drone ->
                 droneRepository.save(drone).toFuture()
         );

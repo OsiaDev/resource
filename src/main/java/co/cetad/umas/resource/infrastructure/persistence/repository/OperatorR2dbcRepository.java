@@ -63,10 +63,9 @@ public class OperatorR2dbcRepository implements OperatorRepository {
             """;
 
         LocalDateTime now = LocalDateTime.now();
-        String generatedId = UUID.randomUUID().toString();
 
         return databaseClient.sql(sql)
-                .bind("id", UUID.fromString(generatedId))
+                .bind("id", UUID.fromString(operator.id()))
                 .bind("username", operator.username())
                 .bind("fullName", operator.fullName())
                 .bind("email", operator.email())
@@ -78,7 +77,7 @@ public class OperatorR2dbcRepository implements OperatorRepository {
                 .bind("isAvailable", operator.isAvailable() != null ? operator.isAvailable() : true)
                 .bind("createdAt", now)
                 .bind("updatedAt", now)
-                .map(this::mapRowToEntity)
+                .map((row, metadata) -> mapRowToEntity(row))
                 .one();
     }
 
