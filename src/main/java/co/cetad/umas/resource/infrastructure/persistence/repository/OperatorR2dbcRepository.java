@@ -59,7 +59,7 @@ public class OperatorR2dbcRepository implements OperatorRepository {
             VALUES (:id, :username, :fullName, :email, :phoneNumber, :ugcsUserId, 
                     :userKeycloak, :status::operator_status, :isAvailable, :createdAt, :updatedAt)
             RETURNING id, username, full_name, email, phone_number, ugcs_user_id, 
-                      keycloak_user_id, status, is_available, created_at, updated_at
+                      user_keycloak, status, is_available, created_at, updated_at
             """;
 
         LocalDateTime now = LocalDateTime.now();

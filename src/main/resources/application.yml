@@ -35,6 +35,8 @@ logging:
     io.r2dbc.postgresql.QUERY: DEBUG
     io.r2dbc.postgresql.PARAM: DEBUG
     org.springframework.integration: INFO
+    reactor.core: DEBUG  # Agregar esta línea
+    org.springframework.r2dbc: DEBUG  # Y esta también
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
