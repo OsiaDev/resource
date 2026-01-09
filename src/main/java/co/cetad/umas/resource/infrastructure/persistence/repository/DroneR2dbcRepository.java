@@ -27,7 +27,7 @@ public class DroneR2dbcRepository implements DroneRepository {
     @Override
     public Flux<DroneEntity> findAll() {
         String sql = """
-        SELECT id, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
+        SELECT id, name, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
         FROM drone
         ORDER BY created_at DESC
         """;
@@ -40,7 +40,7 @@ public class DroneR2dbcRepository implements DroneRepository {
     @Override
     public Mono<Optional<DroneEntity>> findById(String id) {
         String sql = """
-        SELECT id, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
+        SELECT id, name, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
         FROM drone
         WHERE id = :id
         """;
@@ -56,13 +56,14 @@ public class DroneR2dbcRepository implements DroneRepository {
     @Override
     public Mono<DroneEntity> save(DroneEntity drone) {
         String sql = """
-        INSERT INTO drone (id, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at)
-        VALUES (:id, :vehicleId, :model, :description, :serialNumber, :status::drone_status, :flightHours, :createdAt, :updatedAt)
-        RETURNING id, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
+        INSERT INTO drone (id, name, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at)
+        VALUES (:id, :name, :vehicleId, :model, :description, :serialNumber, :status::drone_status, :flightHours, :createdAt, :updatedAt)
+        RETURNING id, name, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
         """;
 
         return databaseClient.sql(sql)
                 .bind("id", UUID.fromString(drone.id()))
+                .bind("name", drone.name())
                 .bind("vehicleId", drone.vehicleId())
                 .bind("model", drone.model())
                 .bind("description", drone.description())
@@ -79,7 +80,8 @@ public class DroneR2dbcRepository implements DroneRepository {
     public Mono<DroneEntity> update(DroneEntity drone) {
         String sql = """
         UPDATE drone
-        SET vehicle_id = :vehicleId,
+        SET name = :name,
+            vehicle_id = :vehicleId,
             model = :model,
             description = :description,
             serial_number = :serialNumber,
@@ -87,11 +89,12 @@ public class DroneR2dbcRepository implements DroneRepository {
             flight_hours = :flightHours,
             updated_at = :updatedAt
         WHERE id = :id
-        RETURNING id, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
+        RETURNING id, name, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
         """;
 
         return databaseClient.sql(sql)
                 .bind("id", UUID.fromString(drone.id()))
+                .bind("name", drone.name())
                 .bind("vehicleId", drone.vehicleId())
                 .bind("model", drone.model())
                 .bind("description", drone.description())
@@ -124,6 +127,7 @@ public class DroneR2dbcRepository implements DroneRepository {
     private DroneEntity mapRowToDroneEntity(Readable row) {
         return new DroneEntity(
                 Objects.requireNonNull(row.get("id", UUID.class)).toString(),
+                row.get("name", String.class),
                 row.get("vehicle_id", String.class),
                 row.get("model", String.class),
                 row.get("description", String.class),

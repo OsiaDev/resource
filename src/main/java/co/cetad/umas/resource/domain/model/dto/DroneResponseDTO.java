@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 
 public record DroneResponseDTO(
         String id,
+        String name,
         String vehicleId,
         String model,
         String description,

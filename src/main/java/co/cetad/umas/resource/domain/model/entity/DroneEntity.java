@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 public record DroneEntity(
         String id,
+        String name,
         String vehicleId,
         String model,
         String description,

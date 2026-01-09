@@ -123,6 +123,7 @@ public class DroneController {
     private DroneResponseDTO toResponse(DroneEntity droneEntity) {
         return new DroneResponseDTO(
                 droneEntity.id(),
+                droneEntity.name(),
                 droneEntity.vehicleId(),
                 droneEntity.model(),
                 droneEntity.description(),

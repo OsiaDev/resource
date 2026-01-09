@@ -7,7 +7,6 @@ import co.cetad.umas.resource.domain.model.vo.DroneStatus;
 import co.cetad.umas.resource.domain.ports.out.DroneRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -47,6 +46,7 @@ public class DroneService {
             LocalDateTime now = LocalDateTime.now();
             return new DroneEntity(
                     UUID.randomUUID().toString(),
+                    request.name(),
                     request.vehicleId(),
                     request.model(),
                     request.description(),
@@ -68,6 +68,7 @@ public class DroneService {
         return getDroneById(id)
                 .thenApply(existingDrone -> new DroneEntity(
                         existingDrone.id(),
+                        request.name(),
                         request.vehicleId(),
                         request.model(),
                         request.description(),
@@ -90,6 +91,7 @@ public class DroneService {
         return getDroneById(id)
                 .thenApply(existingDrone -> new DroneEntity(
                         existingDrone.id(),
+                        existingDrone.name(),
                         existingDrone.vehicleId(),
                         existingDrone.model(),
                         existingDrone.description(),

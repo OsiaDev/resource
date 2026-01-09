@@ -5,6 +5,7 @@ import co.cetad.umas.resource.domain.model.vo.DroneStatus;
 import java.math.BigDecimal;
 
 public record DroneUpdateRequestDTO(
+        String name,
         String vehicleId,
         String model,
         String description,
