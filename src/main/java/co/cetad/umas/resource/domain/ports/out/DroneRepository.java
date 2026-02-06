@@ -15,6 +15,11 @@ public interface DroneRepository {
     Flux<DroneEntity> findAll();
 
     /**
+     * Busca todos los drones por estado
+     */
+    Flux<DroneEntity> findByStatus(DroneStatus status);
+
+    /**
      * Busca un drone por ID
      */
     Mono<Optional<DroneEntity>> findById(String id);

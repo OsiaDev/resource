@@ -38,6 +38,21 @@ public class DroneR2dbcRepository implements DroneRepository {
     }
 
     @Override
+    public Flux<DroneEntity> findByStatus(DroneStatus status) {
+        String sql = """
+        SELECT id, name, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at
+        FROM drone
+        WHERE status = :status::drone_status
+        ORDER BY created_at DESC
+        """;
+
+        return databaseClient.sql(sql)
+                .bind("status", status.name())
+                .map((row, metadata) -> mapRowToDroneEntity(row))
+                .all();
+    }
+
+    @Override
     public Mono<Optional<DroneEntity>> findById(String id) {
         String sql = """
         SELECT id, name, vehicle_id, model, description, serial_number, status, flight_hours, created_at, updated_at

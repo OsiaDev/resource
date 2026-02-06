@@ -39,6 +39,17 @@ public class DroneController {
     }
 
     /**
+     * Obtiene todos los drones activos
+     * GET /api/v1/drones/active
+     */
+    @GetMapping(value = "/active", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Flux<DroneResponseDTO> getActiveDrones() {
+        return droneService
+                .getActiveDrones()
+                .map(this::toResponse);
+    }
+
+    /**
      * Obtiene un drone por ID
      * GET /api/v1/drones/{id}
      */

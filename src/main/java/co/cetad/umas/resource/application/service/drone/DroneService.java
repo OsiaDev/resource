@@ -29,6 +29,13 @@ public class DroneService {
     }
 
     /**
+     * Obtiene todos los drones activos
+     */
+    public Flux<DroneEntity> getActiveDrones() {
+        return droneRepository.findByStatus(DroneStatus.ACTIVE);
+    }
+
+    /**
      * Obtiene un drone por ID
      */
     public CompletableFuture<DroneEntity> getDroneById(String id) {
