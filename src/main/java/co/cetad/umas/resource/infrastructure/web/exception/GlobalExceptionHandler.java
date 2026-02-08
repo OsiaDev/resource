@@ -1,6 +1,7 @@
 package co.cetad.umas.resource.infrastructure.web.exception;
 
 import co.cetad.umas.resource.application.service.drone.DroneService;
+import co.cetad.umas.resource.application.service.maintenance.MaintenanceService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,6 +14,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DroneService.DroneNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleDroneNotFound(DroneService.DroneNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(MaintenanceService.MaintenanceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMaintenanceNotFound(MaintenanceService.MaintenanceNotFoundException ex) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
