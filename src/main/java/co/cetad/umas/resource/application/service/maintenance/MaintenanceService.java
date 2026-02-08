@@ -91,7 +91,7 @@ public class MaintenanceService {
             String maintenanceId = UUID.randomUUID().toString();
             LocalDateTime now = LocalDateTime.now();
 
-            MaintenanceEntity newMaintenance = new MaintenanceEntity(
+            return new MaintenanceEntity(
                     maintenanceId,
                     request.droneId(),
                     MaintenanceStatus.ACTIVE,
@@ -99,7 +99,6 @@ public class MaintenanceService {
                     now,
                     now
             );
-            return newMaintenance;
         }).thenCompose(maintenance ->
                 // 1. Guardar el mantenimiento
                 maintenanceRepository.save(maintenance)
@@ -116,7 +115,7 @@ public class MaintenanceService {
                         })
                         .flatMap(savedMaintenance -> {
                             // 3. Obtener todas las piezas ACTIVAS y crear registros en estado PENDING
-                            return pieceRepository.findAllActive()
+                            Flux<MaintenancePieceEntity> maintenancePieces = pieceRepository.findAllActive()
                                     .map(piece -> {
                                         String maintenancePieceId = UUID.randomUUID().toString();
                                         LocalDateTime now = LocalDateTime.now();
@@ -131,9 +130,9 @@ public class MaintenanceService {
                                                 now,
                                                 now
                                         );
-                                    })
-                                    .collectList()
-                                    .flatMapMany(maintenancePieceRepository::saveAll)
+                                    });
+
+                            return maintenancePieceRepository.saveAll(maintenancePieces)
                                     .collectList()
                                     .doOnSuccess(pieces ->
                                             logger.info("Creados {} registros de piezas para mantenimiento {}",
