@@ -29,8 +29,7 @@ public class MaintenancePieceController {
                         details.maintenancePiece().id(),
                         details.maintenancePiece().maintenanceId(),
                         details.maintenancePiece().pieceId(),
-                        details.piece().name(),
-                        details.piece().code(),
+                        details.piece().name(),  // Solo name existe en piece
                         details.maintenancePiece().status(),
                         details.maintenancePiece().quantity(),
                         details.maintenancePiece().notes(),
@@ -41,7 +40,6 @@ public class MaintenancePieceController {
 
     /**
      * Actualiza el estado de una pieza en un mantenimiento
-     * Permite al usuario ir haciendo la revisión pieza por pieza
      * PUT /api/v1/maintenance-pieces/{id}
      */
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -55,8 +53,7 @@ public class MaintenancePieceController {
                                 entity.id(),
                                 entity.maintenanceId(),
                                 entity.pieceId(),
-                                null, // Se puede obtener en un segundo llamado si es necesario
-                                null,
+                                null, // Se obtiene con otro llamado si es necesario
                                 entity.status(),
                                 entity.quantity(),
                                 entity.notes(),

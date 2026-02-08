@@ -6,8 +6,7 @@ public record MaintenancePieceResponseDTO(
         String id,
         String maintenanceId,
         String pieceId,
-        String pieceName,
-        String pieceCode,
+        String pieceName,        // Viene de JOIN con piece
         MaintenancePieceStatus status,
         Integer quantity,
         String notes,

@@ -6,13 +6,14 @@ import lombok.Getter;
 public enum MaintenancePieceStatus {
 
     PENDING("Pendiente"),
-    CHECKED("Chequeado"),
-    REPLACED("Reemplazado"),
-    DAMAGED("Dañado");
+    CHECKED("Revisada - OK"),
+    REPLACED("Reemplazada"),
+    DAMAGED("Dañada");
 
     private final String status;
 
     MaintenancePieceStatus(String status) {
         this.status = status;
     }
+
 }
