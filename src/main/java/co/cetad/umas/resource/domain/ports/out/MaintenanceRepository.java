@@ -18,7 +18,8 @@ public interface MaintenanceRepository {
     Mono<MaintenanceEntity> findById(String id);
 
     /**
-     * Obtiene todos los mantenimientos de un drone específico
+     * Obtiene todos los mantenimientos de un drone específico (HISTORIAL DEL DRONE)
+     * Ordenados por fecha de creación descendente (más recientes primero)
      */
     Flux<MaintenanceEntity> findByDroneId(String droneId);
 
@@ -39,6 +40,7 @@ public interface MaintenanceRepository {
 
     /**
      * Verifica si existe un mantenimiento activo para un drone
+     * Estados activos: ACTIVE, IN_MAINTENANCE, REPAIRING, OUT_OF_SERVICE
      */
     Mono<Boolean> existsActiveMaintenanceForDrone(String droneId);
 

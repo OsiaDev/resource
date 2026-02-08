@@ -3,8 +3,10 @@ package co.cetad.umas.resource.infrastructure.web.controller;
 import co.cetad.umas.resource.application.service.maintenance.MaintenanceService;
 import co.cetad.umas.resource.domain.model.dto.MaintenanceCreateRequestDTO;
 import co.cetad.umas.resource.domain.model.dto.MaintenanceResponseDTO;
-import co.cetad.umas.resource.domain.model.dto.MaintenanceUpdateRequestDTO;
+import co.cetad.umas.resource.domain.model.dto.MaintenanceStatusHistoryResponseDTO;
+import co.cetad.umas.resource.domain.model.dto.MaintenanceStatusUpdateDTO;
 import co.cetad.umas.resource.domain.model.entity.MaintenanceEntity;
+import co.cetad.umas.resource.domain.model.entity.MaintenanceStatusHistoryEntity;
 import co.cetad.umas.resource.domain.model.vo.MaintenanceStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,7 +51,7 @@ public class MaintenanceController {
     }
 
     /**
-     * Obtiene todos los mantenimientos de un drone específico
+     * Obtiene todos los mantenimientos de un drone específico (HISTORIAL DEL DRONE)
      * GET /api/v1/maintenances/drone/{droneId}
      */
     @GetMapping(value = "/drone/{droneId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -71,7 +73,10 @@ public class MaintenanceController {
     /**
      * Crea un nuevo mantenimiento
      * POST /api/v1/maintenances
-     * Automáticamente actualiza el estado del drone a IN_MAINTENANCE
+     * Automáticamente:
+     * - Crea registros de todas las piezas activas en estado PENDING
+     * - Cambia el estado del drone a IN_MAINTENANCE
+     * - Crea registro inicial en historial
      */
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<MaintenanceResponseDTO>> createMaintenance(
@@ -84,20 +89,31 @@ public class MaintenanceController {
     }
 
     /**
-     * Actualiza un mantenimiento existente
-     * PUT /api/v1/maintenances/{id}
-     * Si el estado cambia a COMPLETED, actualiza el drone a ACTIVE
+     * Actualiza el estado de un mantenimiento
+     * PATCH /api/v1/maintenances/{id}/status
+     * Si el estado cambia a COMPLETED, automáticamente cambia el drone a ACTIVE
+     * Siempre crea un registro en el historial
      */
-    @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<MaintenanceResponseDTO>> updateMaintenance(
+    @PatchMapping(value = "/{id}/status", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<MaintenanceResponseDTO>> updateMaintenanceStatus(
             @PathVariable String id,
-            @RequestBody MaintenanceUpdateRequestDTO request) {
-        return Mono.fromFuture(maintenanceService.updateMaintenance(id, request))
+            @RequestBody MaintenanceStatusUpdateDTO statusUpdate) {
+        return Mono.fromFuture(maintenanceService.updateMaintenanceStatus(id, statusUpdate))
                 .map(maintenance -> ResponseEntity.ok(toResponse(maintenance)))
                 .onErrorResume(MaintenanceService.MaintenanceNotFoundException.class,
                         e -> Mono.just(ResponseEntity.notFound().build()))
                 .onErrorResume(IllegalArgumentException.class,
                         e -> Mono.just(ResponseEntity.badRequest().build()));
+    }
+
+    /**
+     * Obtiene el historial completo de estados de un mantenimiento
+     * GET /api/v1/maintenances/{id}/history
+     */
+    @GetMapping(value = "/{id}/history", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Flux<MaintenanceStatusHistoryResponseDTO> getMaintenanceStatusHistory(@PathVariable String id) {
+        return maintenanceService.getMaintenanceStatusHistory(id)
+                .map(this::toHistoryResponse);
     }
 
     /**
@@ -134,6 +150,17 @@ public class MaintenanceController {
                 entity.description(),
                 entity.createdAt().toString(),
                 entity.updatedAt().toString()
+        );
+    }
+
+    private MaintenanceStatusHistoryResponseDTO toHistoryResponse(MaintenanceStatusHistoryEntity entity) {
+        return new MaintenanceStatusHistoryResponseDTO(
+                entity.id(),
+                entity.maintenanceId(),
+                entity.status(),
+                entity.changedAt().toString(),
+                entity.changedBy(),
+                entity.comment()
         );
     }
 

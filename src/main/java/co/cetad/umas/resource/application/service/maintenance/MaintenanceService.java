@@ -64,7 +64,7 @@ public class MaintenanceService {
     }
 
     /**
-     * Obtiene todos los mantenimientos de un drone
+     * Obtiene todos los mantenimientos de un drone específico
      */
     public Flux<MaintenanceEntity> getMaintenancesByDroneId(String droneId) {
         return maintenanceRepository.findByDroneId(droneId);
@@ -78,8 +78,11 @@ public class MaintenanceService {
     }
 
     /**
-     * Crea un nuevo mantenimiento y automáticamente crea registros de piezas en estado PENDING
-     * También cambia el estado del drone a IN_MAINTENANCE
+     * Crea un nuevo mantenimiento con las siguientes acciones automáticas:
+     * 1. Guarda el mantenimiento con estado ACTIVE
+     * 2. Crea registro en historial
+     * 3. Crea registros de TODAS las piezas activas en estado PENDING
+     * 4. Cambia el estado del drone a IN_MAINTENANCE
      */
     public CompletableFuture<MaintenanceEntity> createMaintenance(MaintenanceCreateRequestDTO request) {
         logger.info("Creando mantenimiento para drone: {}", request.droneId());
@@ -91,13 +94,8 @@ public class MaintenanceService {
             MaintenanceEntity newMaintenance = new MaintenanceEntity(
                     maintenanceId,
                     request.droneId(),
-                    request.operatorId(),
-                    MaintenanceStatus.SCHEDULED,
+                    MaintenanceStatus.ACTIVE,
                     request.description(),
-                    request.scheduledDate(),
-                    null,
-                    null,
-                    request.notes(),
                     now,
                     now
             );
@@ -111,14 +109,14 @@ public class MaintenanceService {
                             // 2. Crear registro inicial en historial
                             return createStatusHistory(
                                     savedMaintenance.id(),
-                                    MaintenanceStatus.SCHEDULED,
-                                    request.operatorId(),
+                                    MaintenanceStatus.ACTIVE,
+                                    null, // Sin operador por ahora
                                     "Mantenimiento creado"
                             ).thenReturn(savedMaintenance);
                         })
                         .flatMap(savedMaintenance -> {
-                            // 3. Obtener todas las piezas y crear registros en estado PENDING
-                            return pieceRepository.findAll()
+                            // 3. Obtener todas las piezas ACTIVAS y crear registros en estado PENDING
+                            return pieceRepository.findAllActive()
                                     .map(piece -> {
                                         String maintenancePieceId = UUID.randomUUID().toString();
                                         LocalDateTime now = LocalDateTime.now();
@@ -172,28 +170,11 @@ public class MaintenanceService {
                 .flatMap(existing -> {
                     LocalDateTime now = LocalDateTime.now();
 
-                    // Actualizar campos según el nuevo estado
-                    LocalDateTime startDate = existing.startDate();
-                    LocalDateTime endDate = existing.endDate();
-
-                    if (statusUpdate.status() == MaintenanceStatus.IN_PROGRESS && startDate == null) {
-                        startDate = now;
-                    }
-
-                    if (statusUpdate.status() == MaintenanceStatus.COMPLETED && endDate == null) {
-                        endDate = now;
-                    }
-
                     MaintenanceEntity updatedMaintenance = new MaintenanceEntity(
                             existing.id(),
                             existing.droneId(),
-                            existing.operatorId(),
                             statusUpdate.status(),
                             existing.description(),
-                            existing.scheduledDate(),
-                            startDate,
-                            endDate,
-                            existing.notes(),
                             existing.createdAt(),
                             now
                     );
@@ -204,14 +185,14 @@ public class MaintenanceService {
                     // Crear registro en historial
                     return createStatusHistory(
                             updated.id(),
-                            updated.status(),
+                            updated.currentStatus(),
                             statusUpdate.changedBy(),
                             statusUpdate.comment()
                     ).thenReturn(updated);
                 })
                 .flatMap(updated -> {
                     // Si el estado es COMPLETED, cambiar drone a ACTIVE
-                    if (updated.status() == MaintenanceStatus.COMPLETED) {
+                    if (updated.currentStatus() == MaintenanceStatus.COMPLETED) {
                         logger.info("Mantenimiento completado, cambiando drone {} a ACTIVE", updated.droneId());
 
                         return droneRepository.updateStatus(updated.droneId(), DroneStatus.ACTIVE)
@@ -226,16 +207,22 @@ public class MaintenanceService {
     }
 
     /**
-     * Elimina un mantenimiento
+     * Actualiza un mantenimiento (solo descripción, el estado se actualiza con updateMaintenanceStatus)
      */
-    public CompletableFuture<Void> deleteMaintenance(String id) {
+    public CompletableFuture<MaintenanceEntity> updateMaintenance(String id, String description) {
         return maintenanceRepository.findById(id)
                 .switchIfEmpty(Mono.error(new MaintenanceNotFoundException("Mantenimiento no encontrado con id: " + id)))
-                .flatMap(existing ->
-                        // Primero eliminar las piezas asociadas
-                        maintenancePieceRepository.deleteByMaintenanceId(id)
-                                .then(maintenanceRepository.deleteById(id))
-                )
+                .flatMap(existing -> {
+                    MaintenanceEntity updated = new MaintenanceEntity(
+                            existing.id(),
+                            existing.droneId(),
+                            existing.currentStatus(),
+                            description,
+                            existing.createdAt(),
+                            LocalDateTime.now()
+                    );
+                    return maintenanceRepository.update(updated);
+                })
                 .toFuture();
     }
 
@@ -244,6 +231,14 @@ public class MaintenanceService {
      */
     public Flux<MaintenanceStatusHistoryEntity> getMaintenanceStatusHistory(String maintenanceId) {
         return statusHistoryRepository.findByMaintenanceId(maintenanceId);
+    }
+
+    /**
+     * Verifica si un drone tiene mantenimiento activo
+     */
+    public CompletableFuture<Boolean> hasActiveMaintenance(String droneId) {
+        return maintenanceRepository.existsActiveMaintenanceForDrone(droneId)
+                .toFuture();
     }
 
     /**
